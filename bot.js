@@ -25,7 +25,7 @@ const gain = 0.05
 var balanceBTC = 0
 binance.balance((error, balances) => {
     if ( error ) return console.error(error);
-    balanceBTC = parseFloat(balances.BTC.available)
+    balanceBTC = parseFloat(balances.BTC.available) - 0.0005
     log("BTC BALANCE IS " + balanceBTC);
 });
 
@@ -54,7 +54,7 @@ async function analyze() {
         if (percentage >= expected) {
             log('SELL NOW AT ' + history[last] + 'USDT!', 'exchanges')
             balanceUSDT = balanceBTC * history[last]
-            binance.sell("BTCUSDT", balanceBTC.toFixed(6), history[last])
+            binance.marketSell("BTCUSDT", balanceBTC.toFixed(6))
             let fees = balanceUSDT / 100 * exchangeFees
             balanceUSDT = balanceUSDT - fees
             balanceBTC = 0
@@ -83,8 +83,8 @@ async function analyze() {
                 log('BUY NOW AT ' + history[last] + ' USDT!', 'exchanges')
                 balanceBTC = balanceUSDT / history[last]
                 let fees = balanceBTC / 100 * exchangeFees
-                binance.buy("BTCUSDT", balanceBTC.toFixed(6), history[last])
                 balanceBTC = balanceBTC - fees
+                binance.marketBuy("BTCUSDT", balanceBTC.toFixed(6))
                 log('BALANCE BTC NOW IS ' + balanceBTC, 'exchanges')
 
                 details = {}
@@ -99,7 +99,7 @@ async function analyze() {
 
 setInterval(function () {
     analyze();
-}, 2000)
+}, 1000)
 
 function log(toLog, file = 'log') {
     console.log(toLog)
