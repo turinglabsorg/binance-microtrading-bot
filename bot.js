@@ -5,7 +5,6 @@ const app = express()
 const port = 3000
 app.listen(port, () => log(`Microtrading BOT ready.`))
 
-
 const key = process.env.BINANCE_APIKEY;
 const secret = process.env.BINANCE_SECRET;
 
@@ -18,13 +17,21 @@ const binance = require('node-binance-api')().options({
 let history = []
 let position = 'BTC'
 let details = {}
-let balanceBTC = 0.1
-let balanceUSDT = 0
-let exchangeFees = 0.1
-let base = 0.5
-let gain = 0.25
 
-async function getStats() {
+const exchangeFees = 0.1
+const base = 0.15
+const gain = 0.05
+
+var balanceBTC = 0
+binance.balance((error, balances) => {
+    if ( error ) return console.error(error);
+    balanceBTC = balances.BTC.available
+    log("BTC BALANCE IS " + balances.BTC.available);
+});
+
+var balanceUSDT = 0
+
+async function analyze() {
     if(process.env.TEST === 'false'){
         var price = await getPrice()
     }else{
@@ -58,12 +65,12 @@ async function getStats() {
             }
             position = 'USDT'
             history = []
-            //TODO: LINK SELL TO BINANCE
+            binance.sell("BTCUSDT", balanceBTC, history[last]);
         }
     }
 
     if (position === 'USDT') {
-        log('OPENED AT ' + history[0] + ' USDT NOW IS ' + history[last] + ' USDT ' + history.length + 'S AGO')
+        log('SELL AT ' + details.price + ' USDT NOW IS ' + history[last] + ' USDT ' + history.length + 'S AGO')
         let delta = history[last] - details.price
         let percentage = 100 / history[last] * delta
         log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%)')
@@ -82,7 +89,7 @@ async function getStats() {
                 details = {}
                 position = 'BTC'
                 history = []
-                //TODO: LINK BUY TO BINANCE
+                binance.buy("BTCUSDT", balanceEUR, history[last]);
             }
         }
 
@@ -91,7 +98,7 @@ async function getStats() {
 }
 
 setInterval(function () {
-    getStats();
+    analyze();
 }, 2000)
 
 function log(toLog, file = 'log') {
