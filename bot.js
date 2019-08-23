@@ -79,6 +79,7 @@ async function analyze() {
             //BUY
             let relative = percentage * -1
             let expected = gain + exchangeFees + base
+            log('EXPECTED IS ' + expected + ' VS ' + relative)
             if (relative >= expected) {
                 log('BUY NOW AT ' + history[last] + ' USDT!', 'exchanges')
                 binance.balance((error, balances) => {
