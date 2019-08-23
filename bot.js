@@ -81,15 +81,19 @@ async function analyze() {
             let expected = gain + exchangeFees + base
             if (relative >= expected) {
                 log('BUY NOW AT ' + history[last] + ' USDT!', 'exchanges')
-                balanceBTC = balanceUSDT / history[last]
-                let fees = balanceBTC / 100 * exchangeFees
-                balanceBTC = balanceBTC - fees
-                binance.marketBuy("BTCUSDT", balanceBTC.toFixed(6))
-                log('BALANCE BTC NOW IS ' + balanceBTC, 'exchanges')
+                binance.balance((error, balances) => {
+                    if ( error ) return console.error(error);
+                    balanceUSDT = parseFloat(balances.USDT.available) - 0.0005
+                    balanceBTC = balanceUSDT / history[last]
+                    let fees = balanceBTC / 100 * exchangeFees
+                    balanceBTC = balanceBTC - fees - 0.001
+                    binance.marketBuy("BTCUSDT", balanceBTC.toFixed(6))
+                    log('BALANCE BTC NOW IS ' + balanceBTC, 'exchanges')
 
-                details = {}
-                position = 'BTC'
-                history = []
+                    details = {}
+                    position = 'BTC'
+                    history = []
+                });
             }
         }
 
