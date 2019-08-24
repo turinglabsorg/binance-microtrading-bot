@@ -21,6 +21,7 @@ let details = {}
 const exchangeFees = 0.1
 const base = 0.3
 const gain = 0.075
+const exit = 1.5
 
 var balanceBTC = 0
 var balanceUSDT = 0
@@ -100,7 +101,7 @@ async function analyze() {
                     history = []
                 });
             }
-        }else if(percentage >= 1.5){
+        }else if(percentage >= exit){
             binance.balance((error, balances) => {
                 if (error) return console.error(error);
                 balanceUSDT = parseFloat(balances.USDT.available)
