@@ -65,6 +65,11 @@ async function analyze() {
                 position = 'USDT'
                 history = []
             });
+        }else{
+            //RESETS THE HISTORY IF NOTHING HAPPENED IN 30 MINUTES
+            if(history.length > 1800){
+                history = []
+            }
         }
     }
 
