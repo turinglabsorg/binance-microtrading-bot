@@ -103,7 +103,7 @@ async function analyze() {
                     history = []
                 });
             }
-        }else if(percentage >= exit){
+        }else if(percentage >= exit){ /*
             binance.balance((error, balances) => {
                 if (error) return console.error(error);
                 balanceUSDT = parseFloat(balances.USDT.available)
@@ -115,8 +115,8 @@ async function analyze() {
 
                 details = {}
                 position = 'BTC'
-                history = []
-            });
+                history = [] 
+            }); */
         }
 
         //TODO: EXIT STRATEGY?
