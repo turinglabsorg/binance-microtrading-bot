@@ -100,7 +100,7 @@ async function analyze() {
                     history = []
                 });
             }
-        }else if(percentage >= 0.8){
+        }else if(percentage >= 1){
             binance.balance((error, balances) => {
                 if (error) return console.error(error);
                 balanceUSDT = parseFloat(balances.USDT.available)
