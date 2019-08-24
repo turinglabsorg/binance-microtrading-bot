@@ -22,6 +22,7 @@ const exchangeFees = 0.1
 const base = 0.3
 const gain = 0.075
 const exit = 1.5
+const restart = 900
 
 var balanceBTC = 0
 var balanceUSDT = 0
@@ -68,7 +69,7 @@ async function analyze() {
             });
         } else {
             //RESETS THE HISTORY IF NOTHING HAPPENED IN 30 MINUTES
-            if (history.length > 1800) {
+            if (history.length > restart) {
                 history = []
             }
         }
