@@ -22,7 +22,7 @@ const exchangeFees = 0.1
 const base = 0.1
 const gain = 0.075
 const exit = 1.5
-const restart = 900
+const restart = 3600
 
 var balanceBTC = 0
 var balanceUSDT = 0
@@ -82,11 +82,13 @@ async function analyze() {
         log('SELL AT ' + details.price + ' USDT NOW IS ' + history[last] + ' USDT ' + history.length + 'S AGO')
         let delta = history[last] - details.price
         let percentage = 100 / history[last] * delta
-        log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%)')
+        let relative = percentage * -1
+        let usdt_dump = history[last] / 100 * relative
+        let usdt_ideal = history[last] - usdt_dump
+        log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%) PRICE SHOULD BE ' + usdt_ideal + ' USDT')
 
         if (percentage < 0 && percentage !== undefined) {
             //BUY
-            let relative = percentage * -1
             let expected = gain + exchangeFees
             log('EXPECTED IS ' + expected + ' VS ' + relative)
             if (relative >= expected) {
