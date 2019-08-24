@@ -19,7 +19,7 @@ let position = 'BTC'
 let details = {}
 
 const exchangeFees = 0.1
-const base = 0.15
+const base = 0.3
 const gain = 0.05
 
 var balanceBTC = 0
@@ -82,7 +82,7 @@ async function analyze() {
         if (percentage < 0 && percentage !== undefined) {
             //BUY
             let relative = percentage * -1
-            let expected = gain + exchangeFees + base
+            let expected = gain + exchangeFees
             log('EXPECTED IS ' + expected + ' VS ' + relative)
             if (relative >= expected) {
                 log('BUY NOW AT ' + history[last] + ' USDT!', 'exchanges')
