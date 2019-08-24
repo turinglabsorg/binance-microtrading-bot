@@ -68,8 +68,9 @@ async function analyze() {
                 history = []
             });
         } else {
-            //RESETS THE HISTORY IF NOTHING HAPPENED IN 30 MINUTES
-            if (history.length > restart) {
+            //RESETS THE HISTORY IF NOTHING HAPPENED
+            let negative = expected * -1
+            if (history.length > restart || percentage <= negative) {
                 history = []
             }
         }
