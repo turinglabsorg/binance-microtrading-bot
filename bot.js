@@ -84,8 +84,8 @@ async function analyze() {
                 log('BUY NOW AT ' + history[last] + ' USDT!', 'exchanges')
                 binance.balance((error, balances) => {
                     if ( error ) return console.error(error);
-                    balanceUSDT = parseFloat(balances.USDT.available) - 0.0005
-                    balanceBTC = balanceUSDT / history[last]
+                    balanceUSDT = parseFloat(balances.USDT.available) - 0.00001
+                    balanceBTC = balanceUSDT / history[last] 
                     let fees = balanceBTC / 100 * exchangeFees
                     balanceBTC = balanceBTC - fees - 0.001
                     binance.marketBuy("BTCUSDT", balanceBTC.toFixed(6))
