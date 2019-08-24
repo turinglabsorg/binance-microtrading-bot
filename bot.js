@@ -26,7 +26,6 @@ var balanceBTC = 0
 var balanceUSDT = 0
 
 async function analyze() {
-    getLastSellPrice()
     if (process.env.TEST === 'false') {
         var price = await getPrice()
     } else {
@@ -145,7 +144,6 @@ function getLastSellPrice() {
         binance.allOrders("BTCUSDT", (error, orders, symbol) => {
             let last = orders.length - 1
             let order = orders[last]
-            console.log(orders)
             if(order.side === 'SELL'){
                 response(order.price)
             }
