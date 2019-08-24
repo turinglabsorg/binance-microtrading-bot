@@ -49,7 +49,7 @@ async function analyze() {
             log('SELL NOW AT ' + history[last] + 'USDT!', 'exchanges')
             binance.balance((error, balances) => {
                 if ( error ) return console.error(error);
-                balanceBTC = parseFloat(balances.BTC.available) - 0.0005
+                balanceBTC = parseFloat(balances.BTC.available) - 0.00001
                 log("BTC BALANCE IS " + balanceBTC);
                 balanceUSDT = balanceBTC * history[last]
                 binance.marketSell("BTCUSDT", balanceBTC.toFixed(6))
