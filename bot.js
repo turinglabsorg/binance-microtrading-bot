@@ -36,12 +36,14 @@ async function analyze() {
             price: price
         }
     }
-
     history.push(price)
     let last = history.length - 1
 
     if (position === 'BTC') {
-        log('OPENED AT ' + history[0] + ' USDT NOW IS ' + history[last] + ' USDT ' + history.length + 'S AGO')
+        if(price < history[0]){
+            history[0] = price
+        }
+        log('BOTTOM AT ' + history[0] + ' USDT NOW IS ' + history[last] + ' USDT ' + history.length + 'S AGO')
         let delta = history[last] - history[0]
         let percentage = 100 / history[last] * delta
         log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%)')
