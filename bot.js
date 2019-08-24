@@ -20,7 +20,7 @@ let details = {}
 
 const exchangeFees = 0.1
 const base = 0.3
-const gain = 0.05
+const gain = 0.075
 
 var balanceBTC = 0
 var balanceUSDT = 0
