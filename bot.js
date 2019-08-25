@@ -23,6 +23,7 @@ const base = 0.4
 const gain = 0.2
 const exit = 1.5
 const restart = 3600
+const quantity = 0.15
 
 var balanceBTC = 0
 var balanceUSDT = 0
@@ -51,24 +52,17 @@ async function analyze() {
 
         if (percentage >= expected) {
             log('SELL NOW AT ' + history[last] + 'USDT!', 'exchanges')
-            binance.balance((error, balances) => {
-                if (error) return console.error(error);
-                balanceBTC = parseFloat(balances.BTC.available) - 0.00001
-                log("BTC BALANCE IS " + balanceBTC);
-                balanceUSDT = balanceBTC * history[last]
-                binance.marketSell("BTCUSDT", balanceBTC.toFixed(6))
-                let fees = balanceUSDT / 100 * exchangeFees
-                balanceUSDT = balanceUSDT - fees
-                balanceBTC = 0
-                log('BALANCE USDT NOW IS ' + balanceUSDT, 'exchanges')
-                //SELL
-                details = {
-                    price: history[last],
-                    time: new Date()
-                }
-                position = 'USDT'
-                history = []
-            });
+            balanceUSDT = quantity * history[last]
+            binance.marketSell("BTCUSDT", quantity.toFixed(6))
+            balanceUSDT = await getLastSellAmount()
+            log('BALANCE USDT NOW IS ' + balanceUSDT, 'exchanges')
+            //SELL
+            details = {
+                price: history[last],
+                time: new Date()
+            }
+            position = 'USDT'
+            history = []
         } else {
             //RESETS THE HISTORY IF NOTHING HAPPENED
             let negative = expected * -1
@@ -83,8 +77,6 @@ async function analyze() {
         let delta = history[last] - details.price
         let percentage = 100 / history[last] * delta
         let relative = percentage * -1
-        let usdt_dump = history[0] / 100 * relative
-        let usdt_ideal = history[0] - usdt_dump
         log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%) PRICE SHOULD BE ' + usdt_ideal + ' USDT')
 
         if (percentage < 0 && percentage !== undefined) {
@@ -93,19 +85,20 @@ async function analyze() {
             log('EXPECTED IS ' + expected + ' VS ' + relative)
             if (relative >= expected) {
                 log('BUY NOW AT ' + history[last] + ' USDT!', 'exchanges')
-                binance.balance((error, balances) => {
-                    if (error) return console.error(error);
-                    balanceUSDT = parseFloat(balances.USDT.available)
-                    balanceBTC = balanceUSDT / history[last]
-                    let fees = balanceBTC / 100 * exchangeFees
-                    balanceBTC = balanceBTC - fees - 0.000001
+                if (error) return console.error(error);
+                balanceBTC = balanceUSDT / history[last]
+                let fees = balanceBTC / 100 * exchangeFees
+                balanceBTC = balanceBTC - fees - 0.000001
+                if(balanceBTC > quantity){
                     binance.marketBuy("BTCUSDT", balanceBTC.toFixed(6))
                     log('BALANCE BTC NOW IS ' + balanceBTC, 'exchanges')
 
                     details = {}
                     position = 'BTC'
                     history = []
-                });
+                }else{
+                    log('TRYING TO BUY LESS BTC THEN I SELL FIRST')
+                }
             }
         }else if(percentage >= exit){ /*
             binance.balance((error, balances) => {
@@ -146,13 +139,18 @@ function getPrice() {
     })
 }
 
-function getLastSellPrice() {
+function getLastSellAmount() {
     return new Promise(response => {
         binance.allOrders("BTCUSDT", (error, orders, symbol) => {
             let last = orders.length - 1
             let order = orders[last]
             if(order.side === 'SELL'){
-                response(order.price)
+                response(order.cummulativeQuoteQty)
+                log(orders[last])
+            }else{
+                let last = orders.length - 2
+                let order = orders[last]
+                response(order.cummulativeQuoteQty)
             }
         });
     })
