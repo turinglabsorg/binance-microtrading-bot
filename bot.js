@@ -68,7 +68,9 @@ async function init(){
         }
         balanceUSDT = await getLastSellAmount()
     }
-    analyze()
+    setInterval(function () {
+        analyze()
+    }, 1000)
 }
 
 async function analyze() {
@@ -181,9 +183,7 @@ async function analyze() {
     }
 }
 
-setInterval(function () {
-    init()
-}, 1000)
+init()
 
 function log(toLog, file = 'log') {
     console.log(toLog)
