@@ -87,6 +87,7 @@ async function analyze() {
             log('EXPECTED % IS ' + expected + ' VS ' + relative)
 
             balanceBTC = balanceUSDT / history[last]
+            let toBuy = balanceBTC
             let fees = balanceBTC / 100 * exchangeFees
             balanceBTC = balanceBTC - fees
             let gainBTC = quantity / 100 * gain
@@ -97,7 +98,7 @@ async function analyze() {
                 log('BUY NOW AT ' + history[last] + ' USDT!', 'exchanges')
                 if (balanceBTC >= expectedBUY) {
                     if (process.env.TEST === 'false') {
-                        binance.marketBuy("BTCUSDT", balanceBTC.toFixed(6))
+                        binance.marketBuy("BTCUSDT", toBuy.toFixed(6))
                     }
                     log('BALANCE BTC NOW IS ' + balanceBTC, 'exchanges')
                     details = {}
