@@ -96,7 +96,9 @@ async function analyze() {
         let percentage = 100 / history[last] * delta
         let relative = percentage * -1
         log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%)')
-
+        //MAKE SURE USDT BALANCE IS CORRECT
+        balanceUSDT = await getLastSellAmount()
+        
         if (percentage < 0 && percentage !== undefined) {
             //BUY
             let expected = gain + exchangeFees
