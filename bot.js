@@ -2,6 +2,9 @@ require('dotenv').config()
 const express = require('express')
 var fs = require('fs');
 const app = express()
+const bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 const port = 3000
 app.listen(port, () => log(`Microtrading BOT ready.`))
 
@@ -28,16 +31,28 @@ const quantity = 0.1
 var balanceBTC = 0
 var balanceUSDT = 0
 
-app.post('/sell', (req, res) => async function (){
-    let amount = req.body.amount
-    binance.marketSell("BTCUSDT", quantity.toFixed(6), (error, response) => {
-        console.log(error)
-        console.log(response)
+app.post('/sell', (req, res) => {
+    let amount =  parseFloat(req.body.amount).toFixed(6)
+    binance.marketSell("BTCUSDT", parseFloat(amount).toFixed(6), (error, response) => {
+        if(error){
+            res.send(error)
+        }else{
+            res.send(response)
+        }
     })
 })
 
-app.post('/buy', (req, res) => async function (){
-    
+app.post('/buy', async (req, res) => {
+    var price = await getPrice()
+    var max = await getLastSellAmount()
+    balanceBTC = max / price
+    binance.marketBuy("BTCUSDT", parseFloat(toBuy).toFixed(6), (error, response) => {
+        if(error){
+            res.send(error)
+        }else{
+            res.send(response)
+        }
+    })
 })
 
 
@@ -115,23 +130,28 @@ async function analyze() {
             log('EXPECTED % IS ' + expected + ' VS ' + relative)
 
             balanceBTC = balanceUSDT / history[last]
+            var toBuy = balanceBTC
             let fees = balanceBTC / 100 * exchangeFees
             balanceBTC = balanceBTC - fees
             let gainBTC = quantity / 100 * gain
             let expectedBUY = gainBTC + quantity
-            let toBuy = expectedBUY + fees - 0.00002
             log('BALANCE USDT IS ' + balanceUSDT + '. EXPECTED BUY IN BTC IS ' + expectedBUY + '. TRYING TO BUY ' + balanceBTC)
 
             if (relative >= expected) {
                 log('BUY NOW AT ' + history[last] + ' USDT!', 'exchanges')
                 if (balanceBTC >= expectedBUY) {
                     if (process.env.TEST === 'false') {
-                        binance.marketBuy("BTCUSDT", toBuy.toFixed(6))
+                        binance.marketBuy("BTCUSDT", parseFloat(toBuy).toFixed(6), (error, response) => {
+                            if(error){
+                                log(error)
+                            }else{
+                                log('BALANCE BTC NOW IS ' + balanceBTC, 'exchanges')
+                                details = {}
+                                position = 'BTC'
+                                history = []
+                            }
+                        })
                     }
-                    log('BALANCE BTC NOW IS ' + balanceBTC, 'exchanges')
-                    details = {}
-                    position = 'BTC'
-                    history = []
                 } else {
                     log('TRYING TO BUY LESS BTC THEN I SELL FIRST')
                 }
