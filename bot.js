@@ -19,8 +19,8 @@ let position = 'BTC'
 let details = {}
 
 const exchangeFees = 0.1
-const base = 0.4
-const gain = 0.2
+const base = 0.2
+const gain = 0.075
 const exit = 1.5
 const restart = 3600
 const quantity = 0.1
