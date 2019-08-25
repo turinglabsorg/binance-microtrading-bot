@@ -103,11 +103,11 @@ async function analyze() {
             log('EXPECTED % IS ' + expected + ' VS ' + relative)
 
             balanceBTC = balanceUSDT / history[last]
-            let toBuy = balanceBTC - 0.00001
             let fees = balanceBTC / 100 * exchangeFees
             balanceBTC = balanceBTC - fees
             let gainBTC = quantity / 100 * gain
             let expectedBUY = gainBTC + quantity
+            let toBuy = balanceBTC + fees
             log('BALANCE USDT IS ' + balanceUSDT + '. EXPECTED BUY IN BTC IS ' + expectedBUY + '. TRYING TO BUY ' + balanceBTC)
 
             if (relative >= expected) {
