@@ -77,7 +77,7 @@ async function analyze() {
         let delta = history[last] - details.price
         let percentage = 100 / history[last] * delta
         let relative = percentage * -1
-        log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%) PRICE SHOULD BE ' + usdt_ideal + ' USDT')
+        log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%)')
 
         if (percentage < 0 && percentage !== undefined) {
             //BUY
