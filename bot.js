@@ -82,17 +82,21 @@ async function analyze() {
         if (percentage < 0 && percentage !== undefined) {
             //BUY
             let expected = gain + exchangeFees
-            log('EXPECTED IS ' + expected + ' VS ' + relative)
+            log('EXPECTED % IS ' + expected + ' VS ' + relative)
+
+            balanceBTC = balanceUSDT / history[last]
+            let fees = balanceBTC / 100 * exchangeFees
+            balanceBTC = balanceBTC - fees
+            let gainBTC = quantity/100*gain
+            let expectedBUY = gainBTC + balanceBTC
+            log('EXPECTED BUY IN BTC IS ' + expectedBUY + '. TRYING TO BUY ' + balanceBTC)
+
             if (relative >= expected) {
                 log('BUY NOW AT ' + history[last] + ' USDT!', 'exchanges')
                 if (error) return console.error(error);
-                balanceBTC = balanceUSDT / history[last]
-                let fees = balanceBTC / 100 * exchangeFees
-                balanceBTC = balanceBTC - fees - 0.000001
-                if(balanceBTC > quantity){
+                if(balanceBTC >= expectedBUY){
                     binance.marketBuy("BTCUSDT", balanceBTC.toFixed(6))
                     log('BALANCE BTC NOW IS ' + balanceBTC, 'exchanges')
-
                     details = {}
                     position = 'BTC'
                     history = []
