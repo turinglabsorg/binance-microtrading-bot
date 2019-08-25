@@ -96,18 +96,23 @@ async function analyze() {
         if (percentage >= expected) {
             log('SELL NOW AT ' + history[last] + 'USDT!', 'exchanges')
             if (process.env.TEST === 'false') {
-                binance.marketSell("BTCUSDT", quantity.toFixed(6))
+                binance.marketBuy("BTCUSDT",  quantity.toFixed(6), (error, response) => {
+                    if(error){
+                        log(error)
+                    }else{
+                        let sellprice = await getLastSellPrice()
+                        balanceUSDT = await getLastSellAmount()
+                        log('BALANCE USDT NOW IS ' + balanceUSDT, 'exchanges')
+                        //SELL
+                        details = {
+                            price: sellprice,
+                            time: new Date()
+                        }
+                        position = 'USDT'
+                        history = []
+                    }
+                })
             }
-            let sellprice = await getLastSellPrice()
-            balanceUSDT = await getLastSellAmount()
-            log('BALANCE USDT NOW IS ' + balanceUSDT, 'exchanges')
-            //SELL
-            details = {
-                price: sellprice,
-                time: new Date()
-            }
-            position = 'USDT'
-            history = []
         } else {
             //RESETS THE HISTORY IF NOTHING HAPPENED
             let negative = expected * -1
