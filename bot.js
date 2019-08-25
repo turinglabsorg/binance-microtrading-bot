@@ -23,7 +23,7 @@ const base = 0.4
 const gain = 0.2
 const exit = 1.5
 const restart = 3600
-const quantity = 0.15
+const quantity = 0.1
 
 var balanceBTC = 0
 var balanceUSDT = 0
