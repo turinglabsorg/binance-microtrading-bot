@@ -142,6 +142,9 @@ async function analyze() {
             balanceBTC = balanceBTC - fees
             let gainBTC = quantity / 100 * gain
             let expectedBUY = gainBTC + quantity
+            expectedBUY = parseFloat(expectedBUY).toFixed(8)
+            balanceBTC = parseFloat(balanceBTC).toFixed(8)
+            
             log('BALANCE USDT IS ' + balanceUSDT + '. EXPECTED BUY IN BTC IS ' + expectedBUY + '. TRYING TO BUY ' + balanceBTC)
 
             if (relative >= expected) {
