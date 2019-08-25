@@ -100,7 +100,7 @@ async function analyze() {
             if (process.env.TEST === 'false') {
                 binance.marketBuy("BTCUSDT",  quantity.toFixed(6), async (error, response) => {
                     if(error){
-                        log(error)
+                        log(error,'errors')
                     }else{
                         let sellprice = await getLastSellPrice()
                         balanceUSDT = await getLastSellAmount()
@@ -150,7 +150,7 @@ async function analyze() {
                     if (process.env.TEST === 'false') {
                         binance.marketBuy("BTCUSDT", parseFloat(toBuy).toFixed(6), async (error, response) => {
                             if(error){
-                                log(error)
+                                log(error,'errors')
                             }else{
                                 log('BALANCE BTC NOW IS ' + balanceBTC, 'exchanges')
                                 details = {}
