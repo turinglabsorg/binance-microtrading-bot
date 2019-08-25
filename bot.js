@@ -170,7 +170,6 @@ function getLastSellAmount() {
             let order = orders[last]
             if (order.side === 'SELL') {
                 response(order.cummulativeQuoteQty)
-                log(orders[last])
             } else {
                 let last = orders.length - 2
                 let order = orders[last]
