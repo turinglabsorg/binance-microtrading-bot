@@ -21,12 +21,12 @@ let history = []
 let position = 'BTC'
 let details = {}
 
-const exchangeFees = 0.1
-const base = 0.4
-const gain = 0.1
-const exit = 1.5
-const restart = 3600
-const quantity = 0.1
+const exchangeFees = process.env.EXCHANGE_FEES
+const base = process.env.BASE
+const gain = process.env.GAIN
+const exit = process.env.EXIT
+const restart = process.env.RESTART
+const quantity = process.env.QUANTITY
 
 var balanceBTC = 0
 var balanceUSDT = 0
@@ -100,7 +100,7 @@ async function analyze() {
             if (process.env.TEST === 'false') {
                 binance.marketSell("BTCUSDT",  quantity.toFixed(6), async (error, response) => {
                     if(error){
-                        log(error,'errors')
+                        log(JSON.stringify(error),'errors')
                     }else{
                         let sellprice = await getLastSellPrice()
                         balanceUSDT = await getLastSellAmount()
@@ -153,7 +153,7 @@ async function analyze() {
                     if (process.env.TEST === 'false') {
                         binance.marketBuy("BTCUSDT", parseFloat(toBuy).toFixed(6), async (error, response) => {
                             if(error){
-                                log(error,'errors')
+                                log(JSON.stringify(error),'errors')
                             }else{
                                 log('BALANCE BTC NOW IS ' + balanceBTC, 'exchanges')
                                 details = {}
