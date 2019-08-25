@@ -20,7 +20,7 @@ let details = {}
 
 const exchangeFees = 0.1
 const base = 0.2
-const gain = 0.03
+const gain = 0.05
 const exit = 1.5
 const restart = 3600
 const quantity = 0.1
@@ -67,12 +67,11 @@ async function analyze() {
 
         if (percentage >= expected) {
             log('SELL NOW AT ' + history[last] + 'USDT!', 'exchanges')
-            balanceUSDT = quantity * history[last]
             if (process.env.TEST === 'false') {
                 binance.marketSell("BTCUSDT", quantity.toFixed(6))
             }
-            balanceUSDT = await getLastSellAmount()
             let sellprice = await getLastSellPrice()
+            balanceUSDT = await getLastSellAmount()
             log('BALANCE USDT NOW IS ' + balanceUSDT, 'exchanges')
             //SELL
             details = {
@@ -96,8 +95,6 @@ async function analyze() {
         let percentage = 100 / history[last] * delta
         let relative = percentage * -1
         log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%)')
-        //MAKE SURE USDT BALANCE IS CORRECT
-        balanceUSDT = getLastSellAmount()
         
         if (percentage < 0 && percentage !== undefined) {
             //BUY
