@@ -28,6 +28,21 @@ const quantity = 0.1
 var balanceBTC = 0
 var balanceUSDT = 0
 
+async function init(){
+    let last = await getLastOrder()
+    if(last.side === 'SELL'){
+        position = 'USDT'
+        let sellprice = last.cummulativeQuoteQty / last.executedQty
+        history.push(sellprice)
+        details = {
+            price: sellprice,
+            time: new Date()
+        }
+        balanceUSDT = await getLastSellAmount()
+    }
+    analyze()
+}
+
 async function analyze() {
     if (process.env.TEST === 'false') {
         var price = await getPrice()
@@ -57,10 +72,11 @@ async function analyze() {
                 binance.marketSell("BTCUSDT", quantity.toFixed(6))
             }
             balanceUSDT = await getLastSellAmount()
+            let sellprice = await getLastSellPrice()
             log('BALANCE USDT NOW IS ' + balanceUSDT, 'exchanges')
             //SELL
             details = {
-                price: history[last],
+                price: sellprice,
                 time: new Date()
             }
             position = 'USDT'
@@ -129,7 +145,7 @@ async function analyze() {
 }
 
 setInterval(function () {
-    analyze();
+    init()
 }, 1000)
 
 function log(toLog, file = 'log') {
@@ -160,6 +176,29 @@ function getLastSellAmount() {
                 let order = orders[last]
                 response(order.cummulativeQuoteQty)
             }
+        });
+    })
+}
+
+function getLastSellPrice() {
+    return new Promise(response => {
+        binance.allOrders("BTCUSDT", (error, orders, symbol) => {
+            let last = orders.length - 1
+            let order = orders[last]
+            if (order.side === 'SELL') {
+                let sellprice = order.cummulativeQuoteQty / order.executedQty
+                response(sellprice)
+            } 
+        });
+    })
+}
+
+function getLastOrder() {
+    return new Promise(response => {
+        binance.allOrders("BTCUSDT", (error, orders, symbol) => {
+            let last = orders.length - 1
+            let order = orders[last]
+            response(order)
         });
     })
 }
