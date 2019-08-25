@@ -19,8 +19,8 @@ let position = 'BTC'
 let details = {}
 
 const exchangeFees = 0.1
-const base = 0.3
-const gain = 0.1
+const base = 0.4
+const gain = 0.2
 const exit = 1.5
 const restart = 3600
 
@@ -83,8 +83,8 @@ async function analyze() {
         let delta = history[last] - details.price
         let percentage = 100 / history[last] * delta
         let relative = percentage * -1
-        let usdt_dump = history[last] / 100 * relative
-        let usdt_ideal = history[last] - usdt_dump
+        let usdt_dump = history[0] / 100 * relative
+        let usdt_ideal = history[0] - usdt_dump
         log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%) PRICE SHOULD BE ' + usdt_ideal + ' USDT')
 
         if (percentage < 0 && percentage !== undefined) {
