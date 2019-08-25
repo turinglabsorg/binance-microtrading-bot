@@ -23,7 +23,7 @@ let details = {}
 
 const exchangeFees = 0.1
 const base = 0.4
-const gain = 0.05
+const gain = 0.1
 const exit = 1.5
 const restart = 3600
 const quantity = 0.1
@@ -98,7 +98,7 @@ async function analyze() {
         if (percentage >= expected) {
             log('SELL NOW AT ' + history[last] + 'USDT!', 'exchanges')
             if (process.env.TEST === 'false') {
-                binance.marketBuy("BTCUSDT",  quantity.toFixed(6), async (error, response) => {
+                binance.marketSell("BTCUSDT",  quantity.toFixed(6), async (error, response) => {
                     if(error){
                         log(error,'errors')
                     }else{
