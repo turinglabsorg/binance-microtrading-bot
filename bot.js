@@ -20,13 +20,26 @@ let details = {}
 
 const exchangeFees = 0.1
 const base = 0.4
-const gain = 0.05
+const gain = 0.1
 const exit = 1.5
 const restart = 3600
 const quantity = 0.1
 
 var balanceBTC = 0
 var balanceUSDT = 0
+
+app.post('/sell', (req, res) => async function (){
+    let amount = req.body.amount
+    binance.marketSell("BTCUSDT", quantity.toFixed(6), (error, response) => {
+        console.log(error)
+        console.log(response)
+    })
+})
+
+app.post('/buy', (req, res) => async function (){
+    
+})
+
 
 async function init(){
     let last = await getLastOrder()
