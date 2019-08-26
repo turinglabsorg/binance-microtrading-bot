@@ -160,6 +160,11 @@ function check() {
     binance.allOrders("BTCUSDT", (error, orders, symbol) => {
         let last = orders.length - 1
         let order = orders[last]
+        if(order.cummulativeQuoteQty === order.origQty){
+            position = 'BTC'
+            history = []
+            grow = []
+        }
     });
 }
 
