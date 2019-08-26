@@ -94,14 +94,12 @@ async function analyze() {
         sum += parseFloat(grow[x])
     }
     var midgrowth = sum / grow.length
-    if(grow.length > 60){
-        grow = []
-    }
     log('MIDGROWTH IS ' + midgrowth.toFixed(3) + '%')
 
     if (position === 'BTC') {
         if (price < history[0]) {
             history[0] = price
+            grow = []
         }
         log('BOTTOM AT ' + history[0] + ' USDT NOW IS ' + history[last] + ' USDT ' + history.length + 'S AGO')
         let delta = history[last] - history[0]
