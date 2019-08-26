@@ -121,7 +121,8 @@ async function analyze() {
                         log('BALANCE USDT NOW IS ' + balanceUSDT, 'exchanges')
                         log(JSON.stringify(response), 'exchanges')
                         let gainBTC = quantity / 100 * gain
-                        let orderBTC = parseFloat(gainBTC) + parseFloat(quantity)
+                        let feesBTC = gainBTC / 100 * fees
+                        let orderBTC = parseFloat(gainBTC) + parseFloat(quantity) + parseFloat(feesBTC)
                         let orderPrice = parseFloat(balanceUSDT) / parseFloat(orderBTC)
                         orderPrice = orderPrice - 0.2
                         var bought = 'N'
