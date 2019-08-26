@@ -123,10 +123,14 @@ async function analyze() {
                         position = 'USDT'
                         history = []
                         grow = []
+                        var nu = 0
                         while(bought === false){
+                            let diff = nu * 0.01
+                            orderPrice = parseFloat(orderPrice) - diff
                             binance.buy("BTCUSDT", orderBTC.toFixed(6), orderPrice.toFixed(2), {type:'LIMIT'}, (error, response) => {
                                 if(error){
                                     log(JSON.stringify(error),'errors')
+                                    nu++
                                 }else{
                                     bought = true
                                     history = []
@@ -137,6 +141,9 @@ async function analyze() {
                                     },1000)
                                 }
                             })
+                            if(nu > 20){
+                                bought = true
+                            }
                         }
                     }
                 })
