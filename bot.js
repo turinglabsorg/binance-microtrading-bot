@@ -107,7 +107,7 @@ async function analyze() {
         let expected = base + exchangeFees
         log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%). EXPECTED ' + expected + '%')
 
-        if (percentage >= expected && midgrowth < 0.1) {
+        if (percentage >= expected && midgrowth < 0.01) {
             log('SELL NOW AT ' + history[last] + 'USDT!', 'exchanges')
             if (process.env.TEST === 'false') {
                 binance.marketSell("BTCUSDT", quantity.toFixed(6), async (error, response) => {
