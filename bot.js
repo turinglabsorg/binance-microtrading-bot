@@ -33,11 +33,11 @@ var balanceBTC = 0
 var balanceUSDT = 0
 
 app.post('/sell', (req, res) => {
-    let amount =  parseFloat(req.body.amount).toFixed(6)
+    let amount = parseFloat(req.body.amount).toFixed(6)
     binance.marketSell("BTCUSDT", parseFloat(amount).toFixed(6), (error, response) => {
-        if(error){
+        if (error) {
             res.send(error)
-        }else{
+        } else {
             res.send(response)
         }
     })
@@ -48,22 +48,22 @@ app.post('/buy', async (req, res) => {
     var max = await getLastSellAmount()
     balanceBTC = max / price
     binance.marketBuy("BTCUSDT", parseFloat(toBuy).toFixed(6), (error, response) => {
-        if(error){
+        if (error) {
             res.send(error)
-        }else{
+        } else {
             res.send(response)
         }
     })
 })
 
 
-async function init(){
+async function init() {
     let last = await getLastOrder()
-    if(last.side === 'BUY' && last.executedQty === 0){
+    if (last.side === 'BUY' && last.executedQty === 0) {
         position = 'USDT'
-        timer = setInterval(function(){
+        timer = setInterval(function () {
             check()
-        },1000)
+        }, 1000)
     }
     setInterval(function () {
         analyze()
@@ -85,12 +85,12 @@ async function analyze() {
     let step = history[last] - history[pre]
     let percStep = 100 / history[last] * step
     percStep = percStep.toFixed(2)
-    if(percStep !== 'NaN'){
+    if (percStep !== 'NaN') {
         grow.push(percStep)
     }
     console.log('STEP IS ' + percStep + '%')
     var sum = 0
-    for(var x = 0; x < grow.length; x++){
+    for (var x = 0; x < grow.length; x++) {
         sum += parseFloat(grow[x])
     }
     var midgrowth = sum / grow.length
@@ -110,12 +110,13 @@ async function analyze() {
         if (percentage >= expected && midgrowth < 0.1) {
             log('SELL NOW AT ' + history[last] + 'USDT!', 'exchanges')
             if (process.env.TEST === 'false') {
-                binance.marketSell("BTCUSDT",  quantity.toFixed(6), async (error, response) => {
-                    if(error){
-                        log(JSON.stringify(error),'errors')
-                    }else{
+                binance.marketSell("BTCUSDT", quantity.toFixed(6), async (error, response) => {
+                    if (error) {
+                        log(JSON.stringify(error), 'errors')
+                    } else {
                         balanceUSDT = await getLastSellAmount()
                         log('BALANCE USDT NOW IS ' + balanceUSDT, 'exchanges')
+                        log(JSON.stringify(response), 'exchanges')
                         let gainBTC = quantity / 100 * gain
                         let orderBTC = parseFloat(gainBTC) + parseFloat(quantity)
                         let orderPrice = parseFloat(balanceUSDT) / parseFloat(orderBTC)
@@ -124,30 +125,30 @@ async function analyze() {
                         history = []
                         grow = []
                         var nu = 0
-                        while(bought === false){
+                        while (bought === false) {
                             let diff = nu * 0.01
                             orderPrice = parseFloat(orderPrice) - diff
-                            binance.buy("BTCUSDT", orderBTC.toFixed(6), orderPrice.toFixed(2), {type:'LIMIT'}, (error, response) => {
-                                if(error){
-                                    log(JSON.stringify(error),'errors')
+                            binance.buy("BTCUSDT", orderBTC.toFixed(6), orderPrice.toFixed(2), { type: 'LIMIT' }, (error, response) => {
+                                if (error) {
+                                    log(JSON.stringify(error), 'errors')
                                     nu++
-                                }else{
+                                } else {
                                     bought = true
                                     history = []
-                                    log(JSON.stringify(response),'errors')
+                                    log(JSON.stringify(response), 'exchanges')
                                     log('BUY ORDER PLACED AT ' + price, 'exchanges')
-                                    timer = setInterval(function(){
+                                    timer = setInterval(function () {
                                         check()
-                                    },1000)
+                                    }, 1000)
                                 }
                             })
-                            if(nu > 20){
+                            if (nu > 20) {
                                 bought = true
                             }
                         }
                     }
                 })
-            }else{
+            } else {
                 details = {
                     price: sellprice,
                     time: new Date()
@@ -168,7 +169,7 @@ async function analyze() {
 
 }
 
-function check(){
+function check() {
     binance.allOrders("BTCUSDT", (error, orders, symbol) => {
         let last = orders.length - 1
         let order = orders[last]
@@ -177,7 +178,7 @@ function check(){
             history = []
             grow = []
             position = 'BTC'
-        } 
+        }
     });
 }
 
@@ -222,7 +223,7 @@ function getLastSellPrice() {
             if (order.side === 'SELL') {
                 let sellprice = order.cummulativeQuoteQty / order.executedQty
                 response(sellprice)
-            } 
+            }
         });
     })
 }
