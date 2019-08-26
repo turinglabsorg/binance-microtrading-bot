@@ -21,12 +21,12 @@ let history = []
 let position = 'BTC'
 let details = {}
 
-const exchangeFees = process.env.EXCHANGE_FEES
-const base = process.env.BASE
-const gain = process.env.GAIN
-const exit = process.env.EXIT
-const restart = process.env.RESTART
-const quantity = process.env.QUANTITY
+const exchangeFees = parseFloat(process.env.EXCHANGE_FEES)
+const base = parseFloat(process.env.BASE)
+const gain = parseFloat(process.env.GAIN)
+const exit = parseFloat(process.env.EXIT)
+const restart = parseFloat(process.env.RESTART)
+const quantity = parseFloat(process.env.QUANTITY)
 
 var balanceBTC = 0
 var balanceUSDT = 0
@@ -92,8 +92,8 @@ async function analyze() {
         log('BOTTOM AT ' + history[0] + ' USDT NOW IS ' + history[last] + ' USDT ' + history.length + 'S AGO')
         let delta = history[last] - history[0]
         let percentage = 100 / history[last] * delta
-        log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%)')
         let expected = base + exchangeFees
+        log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%). EXPECTED ' + expected + '%')
 
         if (percentage >= expected) {
             log('SELL NOW AT ' + history[last] + 'USDT!', 'exchanges')
@@ -114,6 +114,13 @@ async function analyze() {
                         history = []
                     }
                 })
+            }else{
+                details = {
+                    price: sellprice,
+                    time: new Date()
+                }
+                position = 'USDT'
+                history = []
             }
         } else {
             //RESETS THE HISTORY IF NOTHING HAPPENED
