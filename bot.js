@@ -117,9 +117,9 @@ async function analyze() {
                         balanceUSDT = await getLastSellAmount()
                         log('BALANCE USDT NOW IS ' + balanceUSDT, 'exchanges')
                         let gainBTC = quantity / 100 * gain
-                        let orderBTC = gainBTC + orderBTC
+                        let orderBTC = gainBTC.toFixed(6) + quantity.toFixed(6)
                         let orderPrice = balanceUSDT / orderBTC
-                        binance.buy("BTCUSDT", orderBTC, orderPrice, {type:'LIMIT'}, (error, response) => {
+                        binance.buy("BTCUSDT", orderBTC, orderPrice.toFixed(2), {type:'LIMIT'}, (error, response) => {
                             if(error){
                                 log(JSON.stringify(error),'errors')
                             }else{
