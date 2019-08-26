@@ -117,19 +117,27 @@ async function analyze() {
                         balanceUSDT = await getLastSellAmount()
                         log('BALANCE USDT NOW IS ' + balanceUSDT, 'exchanges')
                         let gainBTC = quantity / 100 * gain
-                        let orderBTC = gainBTC.toFixed(6) + quantity.toFixed(6)
-                        let orderPrice = balanceUSDT / orderBTC
-                        binance.buy("BTCUSDT", orderBTC, orderPrice.toFixed(2), {type:'LIMIT'}, (error, response) => {
-                            if(error){
-                                log(JSON.stringify(error),'errors')
-                            }else{
-                                log(JSON.stringify(response),'errors')
-                                log('BUY ORDER PLACED AT ' + price, 'exchanges')
-                                timer = setInterval(function(){
-                                    check()
-                                },1000)
-                            }
-                        })
+                        let orderBTC = parseFloat(gainBTC) + parseFloat(quantity)
+                        let orderPrice = parseFloat(balanceUSDT) / parseFloat(orderBTC)
+                        var bought = false
+                        position = 'USDT'
+                        history = []
+                        grow = []
+                        while(bought === false){
+                            binance.buy("BTCUSDT", orderBTC.toFixed(6), orderPrice.toFixed(2), {type:'LIMIT'}, (error, response) => {
+                                if(error){
+                                    log(JSON.stringify(error),'errors')
+                                }else{
+                                    bought = true
+                                    history = []
+                                    log(JSON.stringify(response),'errors')
+                                    log('BUY ORDER PLACED AT ' + price, 'exchanges')
+                                    timer = setInterval(function(){
+                                        check()
+                                    },1000)
+                                }
+                            })
+                        }
                     }
                 })
             }else{
