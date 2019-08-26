@@ -131,6 +131,10 @@ async function analyze() {
                             binance.buy("BTCUSDT", orderBTC.toFixed(6), orderPrice.toFixed(2), { type: 'LIMIT' }, (error, response) => {
                                 if (error) {
                                     log(JSON.stringify(error), 'errors')
+                                    log(JSON.stringify({
+                                        orderBTC: orderBTC.toFixed(6),
+                                        orderPrice: orderPrice.toFixed(2)
+                                    }), 'requests')
                                     nu++
                                 } else {
                                     bought = true

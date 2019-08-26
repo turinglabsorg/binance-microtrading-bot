@@ -5,3 +5,4 @@ node_modules/
 .price
 errors
 _bot.js
+requests
