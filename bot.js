@@ -18,8 +18,9 @@ const binance = require('node-binance-api')().options({
 });
 
 let history = []
+let grow = []
 let position = 'BTC'
-let details = {}
+var timer
 
 const exchangeFees = parseFloat(process.env.EXCHANGE_FEES)
 const base = parseFloat(process.env.BASE)
@@ -58,15 +59,11 @@ app.post('/buy', async (req, res) => {
 
 async function init(){
     let last = await getLastOrder()
-    if(last.side === 'SELL'){
+    if(last.side === 'BUY' && last.executedQty === 0){
         position = 'USDT'
-        let sellprice = last.cummulativeQuoteQty / last.executedQty
-        history.push(sellprice)
-        details = {
-            price: sellprice,
-            time: new Date()
-        }
-        balanceUSDT = await getLastSellAmount()
+        timer = setInterval(function(){
+            check()
+        },1000)
     }
     setInterval(function () {
         analyze()
@@ -84,6 +81,23 @@ async function analyze() {
     }
     history.push(price)
     let last = history.length - 1
+    let pre = history.length - 2
+    let step = history[last] - history[pre]
+    let percStep = 100 / history[last] * step
+    percStep = percStep.toFixed(2)
+    if(percStep !== 'NaN'){
+        grow.push(percStep)
+    }
+    console.log('STEP IS ' + percStep + '%')
+    var sum = 0
+    for(var x = 0; x < grow.length; x++){
+        sum += parseFloat(grow[x])
+    }
+    var midgrowth = sum / grow.length
+    if(grow.length > 60){
+        grow = []
+    }
+    log('MIDGROWTH IS ' + midgrowth.toFixed(3) + '%')
 
     if (position === 'BTC') {
         if (price < history[0]) {
@@ -95,23 +109,29 @@ async function analyze() {
         let expected = base + exchangeFees
         log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%). EXPECTED ' + expected + '%')
 
-        if (percentage >= expected) {
+        if (percentage >= expected && midgrowth < 0.1) {
             log('SELL NOW AT ' + history[last] + 'USDT!', 'exchanges')
             if (process.env.TEST === 'false') {
                 binance.marketSell("BTCUSDT",  quantity.toFixed(6), async (error, response) => {
                     if(error){
                         log(JSON.stringify(error),'errors')
                     }else{
-                        let sellprice = await getLastSellPrice()
                         balanceUSDT = await getLastSellAmount()
                         log('BALANCE USDT NOW IS ' + balanceUSDT, 'exchanges')
-                        //SELL
-                        details = {
-                            price: sellprice,
-                            time: new Date()
-                        }
-                        position = 'USDT'
-                        history = []
+                        let gainBTC = quantity / 100 * gain
+                        let orderBTC = gainBTC + orderBTC
+                        let orderPrice = balanceUSDT / orderBTC
+                        binance.buy("BTCUSDT", orderBTC, orderPrice, {type:'LIMIT'}, (error, response) => {
+                            if(error){
+                                log(JSON.stringify(error),'errors')
+                            }else{
+                                log(JSON.stringify(response),'errors')
+                                log('BUY ORDER PLACED AT ' + price, 'exchanges')
+                                timer = setInterval(function(){
+                                    check()
+                                },1000)
+                            }
+                        })
                     }
                 })
             }else{
@@ -121,76 +141,31 @@ async function analyze() {
                 }
                 position = 'USDT'
                 history = []
+                grow = []
             }
         } else {
             //RESETS THE HISTORY IF NOTHING HAPPENED
             let negative = expected * -1
             if (history.length > restart || percentage <= negative) {
                 history = []
+                grow = []
             }
         }
     }
 
-    if (position === 'USDT') {
-        log('SELL AT ' + details.price + ' USDT NOW IS ' + history[last] + ' USDT ' + history.length + 'S AGO')
-        let delta = history[last] - details.price
-        let percentage = 100 / history[last] * delta
-        let relative = percentage * -1
-        log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%)')
-        
-        if (percentage < 0 && percentage !== undefined) {
-            //BUY
-            let expected = gain + exchangeFees
-            log('EXPECTED % IS ' + expected + ' VS ' + relative)
+}
 
-            balanceBTC = balanceUSDT / history[last]
-            var toBuy = balanceBTC
-            let fees = balanceBTC / 100 * exchangeFees
-            balanceBTC = balanceBTC - fees
-            let gainBTC = quantity / 100 * gain
-            let expectedBUY = gainBTC + quantity
-            expectedBUY = parseFloat(expectedBUY).toFixed(8)
-            balanceBTC = parseFloat(balanceBTC).toFixed(8)
-            
-            log('BALANCE USDT IS ' + balanceUSDT + '. EXPECTED BUY IN BTC IS ' + expectedBUY + '. TRYING TO BUY ' + balanceBTC)
-
-            if (relative >= expected) {
-                log('BUY NOW AT ' + history[last] + ' USDT!', 'exchanges')
-                if (balanceBTC >= expectedBUY) {
-                    if (process.env.TEST === 'false') {
-                        binance.marketBuy("BTCUSDT", parseFloat(toBuy).toFixed(6), async (error, response) => {
-                            if(error){
-                                log(JSON.stringify(error),'errors')
-                            }else{
-                                log('BALANCE BTC NOW IS ' + balanceBTC, 'exchanges')
-                                details = {}
-                                position = 'BTC'
-                                history = []
-                            }
-                        })
-                    }
-                } else {
-                    log('TRYING TO BUY LESS BTC THEN I SELL FIRST')
-                }
-            }
-        } else if (percentage >= exit) { /*
-            binance.balance((error, balances) => {
-                if (error) return console.error(error);
-                balanceUSDT = parseFloat(balances.USDT.available)
-                balanceBTC = balanceUSDT / history[last]
-                let fees = balanceBTC / 100 * exchangeFees
-                balanceBTC = balanceBTC - fees - 0.000001
-                binance.marketBuy("BTCUSDT", balanceBTC.toFixed(6))
-                log('BALANCE BTC NOW IS ' + balanceBTC, 'exchanges')
-
-                details = {}
-                position = 'BTC'
-                history = [] 
-            }); */
-        }
-
-        //TODO: EXIT STRATEGY?
-    }
+function check(){
+    binance.allOrders("BTCUSDT", (error, orders, symbol) => {
+        let last = orders.length - 1
+        let order = orders[last]
+        if (order.side === 'BUY') {
+            clearInterval(timer)
+            history = []
+            grow = []
+            position = 'BTC'
+        } 
+    });
 }
 
 init()
