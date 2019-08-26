@@ -20,6 +20,7 @@ const binance = require('node-binance-api')().options({
 let history = []
 let grow = []
 let position = 'BTC'
+let placedOrderPrice = 0
 var timer
 
 const exchangeFees = parseFloat(process.env.EXCHANGE_FEES)
@@ -59,7 +60,9 @@ app.post('/buy', async (req, res) => {
 
 async function init() {
     let last = await getLastOrder()
-    if (last.side === 'BUY' && last.executedQty === 0) {
+    if (last.side === 'BUY' && parseFloat(last.executedQty) === 0) {
+        console.log('ORDER IS PLACED, WAITING FOR FILL')
+        placedOrderPrice = last.price
         position = 'USDT'
         timer = setInterval(function () {
             check()
@@ -147,6 +150,8 @@ async function analyze() {
                 grow = []
             }
         }
+    }else{
+        log('PRICE USDT NOW IS ' + history[last] + '. ORDER PLACED AT ' + placedOrderPrice)
     }
 
 }
@@ -155,12 +160,6 @@ function check() {
     binance.allOrders("BTCUSDT", (error, orders, symbol) => {
         let last = orders.length - 1
         let order = orders[last]
-        if (order.side === 'BUY') {
-            clearInterval(timer)
-            history = []
-            grow = []
-            position = 'BTC'
-        }
     });
 }
 
