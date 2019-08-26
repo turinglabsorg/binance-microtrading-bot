@@ -120,6 +120,7 @@ async function analyze() {
                         let gainBTC = quantity / 100 * gain
                         let orderBTC = parseFloat(gainBTC) + parseFloat(quantity)
                         let orderPrice = parseFloat(balanceUSDT) / parseFloat(orderBTC)
+                        orderPrice = orderPrice - 0.2
                         var bought = 'N'
                         position = 'USDT'
                         history = []
@@ -227,7 +228,7 @@ function buyBitcoin(btc, price){
                 orderBTC: btc.toFixed(6),
                 orderPrice: price.toFixed(2)
             }), 'requests')
-            price = price - 0.01
+            price = price - 0.1
             buyBitcoin(btc, price)
         } else {
             bought = 'Y'
