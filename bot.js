@@ -26,11 +26,9 @@ var timer
 const exchangeFees = parseFloat(process.env.EXCHANGE_FEES)
 const base = parseFloat(process.env.BASE)
 const gain = parseFloat(process.env.GAIN)
-const exit = parseFloat(process.env.EXIT)
 const restart = parseFloat(process.env.RESTART)
 const quantity = parseFloat(process.env.QUANTITY)
 
-var balanceBTC = 0
 var balanceUSDT = 0
 
 app.post('/sell', (req, res) => {
@@ -162,6 +160,7 @@ async function analyze() {
         if (percentage >= gain) {
             //CANCEL ALL ORDERS
             log('ACTIVATING STOP LOSS!')
+            clearInterval(timer)
             binance.cancelOrders("BTCUSDT", (error, response, symbol) => {
                 buyMaxBTC()
             });
