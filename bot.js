@@ -124,11 +124,10 @@ async function analyze() {
                         let feesBTC = gainBTC / 100 * fees
                         let orderBTC = parseFloat(gainBTC) + parseFloat(quantity) + parseFloat(feesBTC)
                         let orderPrice = parseFloat(balanceUSDT) / parseFloat(orderBTC)
-                        orderPrice = orderPrice - 0.2
+                        orderPrice = orderPrice
                         position = 'USDT'
                         history = []
                         grow = []
-                        console.log('PLACING ORDER OF ' + orderBTC + ' AT PRICE ' + orderPrice + ' USDT')
                         buyBitcoin(orderBTC, orderPrice)
                     }
                 })
@@ -226,6 +225,7 @@ function getLastOrder() {
 }
 
 function buyBitcoin(btc, price){
+    log('PLACING ORDER OF ' + btc + ' AT PRICE ' + price + ' USDT', 'requests')
     binance.buy("BTCUSDT", btc.toFixed(6), price.toFixed(2), { type: 'LIMIT' }, (error, response) => {
         if (error) {
             log(JSON.stringify(error), 'errors')
@@ -233,10 +233,9 @@ function buyBitcoin(btc, price){
                 orderBTC: btc.toFixed(6),
                 orderPrice: price.toFixed(2)
             }), 'requests')
-            price = price - 0.1
+            price = price - 1
             buyBitcoin(btc, price)
         } else {
-            bought = 'Y'
             history = []
             position = 'USDT'
             log(JSON.stringify(response), 'exchanges')
