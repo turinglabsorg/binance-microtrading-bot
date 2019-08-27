@@ -60,7 +60,7 @@ app.post('/buy', async (req, res) => {
 
 async function init() {
     let last = await getLastOrder()
-    if(last !== undefined){
+    if (last !== undefined) {
         if (last.side === 'BUY' && parseFloat(last.executedQty) === 0) {
             console.log('ORDER IS PLACED, WAITING FOR FILL')
             placedOrderPrice = last.price
@@ -72,8 +72,10 @@ async function init() {
         setInterval(function () {
             analyze()
         }, 1000)
-    }else{
-        init()
+    } else {
+        setInterval(function () {
+            analyze()
+        }, 1000)
     }
 }
 
@@ -152,18 +154,17 @@ async function analyze() {
                 grow = []
             }
         }
-    }else{
+    } else {
         log('PRICE USDT NOW IS ' + history[last] + '. ORDER PLACED AT ' + placedOrderPrice)
         let delta = history[last] - placedOrderPrice
         var percentage = 100 / history[last] * delta
-        if(percentage < 0){
-            var relative = percentage * -1
-            if(relative >= gain){
-                //CANCEL ALL ORDERS
-                binance.cancelOrders("BTCUSDT", (error, response, symbol) => {
-                    buyMaxBTC()                
-                });
-            }
+        log('PERCENTAGE IS ' + percentage + '%')
+        if (percentage >= gain) {
+            //CANCEL ALL ORDERS
+            log('ACTIVATING STOP LOSS!')
+            binance.cancelOrders("BTCUSDT", (error, response, symbol) => {
+                buyMaxBTC()
+            });
         }
     }
 
@@ -174,8 +175,8 @@ function check() {
         let last = orders.length - 1
         let order = orders[last]
         log('CHECKING IF LAST ORDER SI FILLED')
-        if(order !== undefined){
-            if(order.cummulativeQuoteQty === order.origQty){
+        if (order !== undefined) {
+            if (order.cummulativeQuoteQty === order.origQty) {
                 position = 'BTC'
                 history = []
                 grow = []
@@ -233,7 +234,7 @@ function getLastSellPrice() {
 
 function getLastOrder() {
     return new Promise(response => {
-        binance.allOrders("BTCUSDT", (error, orders, symbol) => {
+        binance.openOrders("BTCUSDT", (error, orders, symbol) => {
             let last = orders.length - 1
             let order = orders[last]
             response(order)
@@ -241,7 +242,7 @@ function getLastOrder() {
     })
 }
 
-function buyBitcoin(btc, price){
+function buyBitcoin(btc, price) {
     log('PLACING ORDER OF ' + btc + ' AT PRICE ' + price + ' USDT', 'requests')
     binance.buy("BTCUSDT", btc.toFixed(6), price.toFixed(2), { type: 'LIMIT' }, (error, response) => {
         if (error) {
@@ -265,28 +266,33 @@ function buyBitcoin(btc, price){
     })
 }
 
-function buyBitcoinMarket(amount){
-    return new Promise(response => {
-        binance.buy("BTCUSDT", amount, (error, response) => {
-            if(error){
-                amount = amount - 0.0001
-                buyBitcoinMarket(amount)
+function buyBitcoinMarket(amount) {
+    return new Promise(promise => {
+        log('TRYING TO BUY ' + amount + ' BTC')
+        binance.marketBuy("BTCUSDT", amount, (error, response) => {
+            if (error) {
+                amount = amount - 0.001
+                //log(error, 'errors')
+                buyBitcoinMarket(amount.toFixed(6))
+            } else {
+                log(response)
+                log('BOUGHT BTC ' + amount)
+                position = 'BTC'
+                history = []
+                grow = []
             }
-            log('BOUGHT BTC ' + amount)
-            position = 'BTC'
-            history = []
-            grow = []
         })
     })
 }
 
-function buyMaxBTC(){
+function buyMaxBTC() {
     binance.balance(async (error, balances) => {
-        if ( error ) return console.error(error);
-        let balance = balances.BTCUSDT.available
+        if (error) return console.error(error);
+        let balance = balances.USDT.available
+        log('BALANCE USDT IS ' + balance)
         let price = await getPrice()
-        let max = parseFloat(price) / parseFloat(balance)
-        max = price.toFixed(6)
+        let max = parseFloat(balance) / parseFloat(price)
+        max = max.toFixed(6)
         buyBitcoinMarket(max)
     });
 }
