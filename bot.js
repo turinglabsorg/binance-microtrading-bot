@@ -60,17 +60,21 @@ app.post('/buy', async (req, res) => {
 
 async function init() {
     let last = await getLastOrder()
-    if (last.side === 'BUY' && parseFloat(last.executedQty) === 0) {
-        console.log('ORDER IS PLACED, WAITING FOR FILL')
-        placedOrderPrice = last.price
-        position = 'USDT'
-        timer = setInterval(function () {
-            check()
+    if(last !== undefined){
+        if (last.side === 'BUY' && parseFloat(last.executedQty) === 0) {
+            console.log('ORDER IS PLACED, WAITING FOR FILL')
+            placedOrderPrice = last.price
+            position = 'USDT'
+            timer = setInterval(function () {
+                check()
+            }, 1000)
+        }
+        setInterval(function () {
+            analyze()
         }, 1000)
+    }else{
+        init()
     }
-    setInterval(function () {
-        analyze()
-    }, 1000)
 }
 
 async function analyze() {
@@ -121,7 +125,7 @@ async function analyze() {
                         log('BALANCE USDT NOW IS ' + balanceUSDT, 'exchanges')
                         log(JSON.stringify(response), 'exchanges')
                         let gainBTC = quantity / 100 * gain
-                        let feesBTC = gainBTC / 100 * fees
+                        let feesBTC = gainBTC / 100 * exchangeFees
                         let orderBTC = parseFloat(gainBTC) + parseFloat(quantity) + parseFloat(feesBTC)
                         let orderPrice = parseFloat(balanceUSDT) / parseFloat(orderBTC)
                         orderPrice = orderPrice
@@ -159,11 +163,13 @@ function check() {
         let last = orders.length - 1
         let order = orders[last]
         log('CHECKING IF LAST ORDER SI FILLED')
-        if(order.cummulativeQuoteQty === order.origQty){
-            position = 'BTC'
-            history = []
-            grow = []
-            clearInterval(timer)
+        if(order !== undefined){
+            if(order.cummulativeQuoteQty === order.origQty){
+                position = 'BTC'
+                history = []
+                grow = []
+                clearInterval(timer)
+            }
         }
     });
 }
