@@ -125,11 +125,9 @@ async function analyze() {
                         let orderBTC = parseFloat(gainBTC) + parseFloat(quantity) + parseFloat(feesBTC)
                         let orderPrice = parseFloat(balanceUSDT) / parseFloat(orderBTC)
                         orderPrice = orderPrice - 0.2
-                        var bought = 'N'
                         position = 'USDT'
                         history = []
                         grow = []
-                        var nu = 0
                         console.log('PLACING ORDER OF ' + orderBTC + ' AT PRICE ' + orderPrice + ' USDT')
                         buyBitcoin(orderBTC, orderPrice)
                     }
@@ -161,10 +159,12 @@ function check() {
     binance.allOrders("BTCUSDT", (error, orders, symbol) => {
         let last = orders.length - 1
         let order = orders[last]
+        log('CHECKING IF LAST ORDER SI FILLED')
         if(order.cummulativeQuoteQty === order.origQty){
             position = 'BTC'
             history = []
             grow = []
+            clearInterval(timer)
         }
     });
 }
@@ -238,6 +238,7 @@ function buyBitcoin(btc, price){
         } else {
             bought = 'Y'
             history = []
+            position = 'USDT'
             log(JSON.stringify(response), 'exchanges')
             log('BUY ORDER PLACED AT ' + price, 'exchanges')
             timer = setInterval(function () {
