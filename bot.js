@@ -22,6 +22,7 @@ let grow = []
 let position = 'BTC'
 let placedOrderPrice = 0
 var timer
+var fails = 0
 
 const exchangeFees = parseFloat(process.env.EXCHANGE_FEES)
 const base = parseFloat(process.env.BASE)
@@ -78,95 +79,99 @@ async function init() {
 }
 
 async function analyze() {
-    if (process.env.TEST === 'false') {
-        var price = await getPrice()
-    } else {
-        var price = fs.readFileSync('.price', 'utf8');
-        var stats = {
-            price: price
+    if(fails < 3){
+        if (process.env.TEST === 'false') {
+            var price = await getPrice()
+        } else {
+            var price = fs.readFileSync('.price', 'utf8');
+            var stats = {
+                price: price
+            }
         }
-    }
-    history.push(price)
-    let last = history.length - 1
-    let pre = history.length - 2
-    let step = history[last] - history[pre]
-    let percStep = 100 / history[last] * step
-    percStep = percStep.toFixed(2)
-    if (percStep !== 'NaN') {
-        grow.push(percStep)
-    }
-    console.log('STEP IS ' + percStep + '%')
-    var sum = 0
-    for (var x = 0; x < grow.length; x++) {
-        sum += parseFloat(grow[x])
-    }
-    var midgrowth = sum / grow.length
-    log('MIDGROWTH IS ' + midgrowth.toFixed(3) + '%')
-
-    if (position === 'BTC') {
-        if (price < history[0]) {
-            history[0] = price
-            grow = []
+        history.push(price)
+        let last = history.length - 1
+        let pre = history.length - 2
+        let step = history[last] - history[pre]
+        let percStep = 100 / history[last] * step
+        percStep = percStep.toFixed(2)
+        if (percStep !== 'NaN') {
+            grow.push(percStep)
         }
-        log('BOTTOM AT ' + history[0] + ' USDT NOW IS ' + history[last] + ' USDT ' + history.length + 'S AGO')
-        let delta = history[last] - history[0]
-        let percentage = 100 / history[last] * delta
-        let expected = base
-        log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%). EXPECTED ' + expected + '%')
+        console.log('STEP IS ' + percStep + '%')
+        var sum = 0
+        for (var x = 0; x < grow.length; x++) {
+            sum += parseFloat(grow[x])
+        }
+        var midgrowth = sum / grow.length
+        log('MIDGROWTH IS ' + midgrowth.toFixed(3) + '%')
 
-        if (percentage >= expected && midgrowth < 0.01) {
-            log('SELL NOW AT ' + history[last] + 'USDT!', 'exchanges')
-            if (process.env.TEST === 'false') {
-                binance.marketSell("BTCUSDT", quantity.toFixed(6), async (error, response) => {
-                    if (error) {
-                        log(JSON.stringify(error), 'errors')
-                    } else {
-                        balanceUSDT = await getLastSellAmount()
-                        log('BALANCE USDT NOW IS ' + balanceUSDT, 'exchanges')
-                        log(JSON.stringify(response), 'exchanges')
-                        let gainBTC = quantity / 100 * gain
-                        let feesBTC = gainBTC / 100 * exchangeFees
-                        let orderBTC = parseFloat(gainBTC) + parseFloat(quantity) + parseFloat(feesBTC)
-                        let orderPrice = parseFloat(balanceUSDT) / parseFloat(orderBTC)
-                        orderPrice = orderPrice
-                        position = 'USDT'
-                        history = []
-                        grow = []
-                        buyBitcoin(orderBTC, orderPrice)
-                    }
-                })
-            } else {
-                details = {
-                    price: sellprice,
-                    time: new Date()
-                }
-                position = 'USDT'
-                history = []
+        if (position === 'BTC') {
+            if (price < history[0]) {
+                history[0] = price
                 grow = []
+            }
+            log('BOTTOM AT ' + history[0] + ' USDT NOW IS ' + history[last] + ' USDT ' + history.length + 'S AGO')
+            let delta = history[last] - history[0]
+            let percentage = 100 / history[last] * delta
+            let expected = base
+            log('DELTA IS ' + delta + ' USDT (' + percentage.toFixed(2) + '%). EXPECTED ' + expected + '%')
+
+            if (percentage >= expected && midgrowth < 0.01) {
+                log('SELL NOW AT ' + history[last] + 'USDT!', 'exchanges')
+                if (process.env.TEST === 'false') {
+                    binance.marketSell("BTCUSDT", quantity.toFixed(6), async (error, response) => {
+                        if (error) {
+                            log(JSON.stringify(error), 'errors')
+                        } else {
+                            balanceUSDT = await getLastSellAmount()
+                            log('BALANCE USDT NOW IS ' + balanceUSDT, 'exchanges')
+                            log(JSON.stringify(response), 'exchanges')
+                            let gainBTC = quantity / 100 * gain
+                            let feesBTC = gainBTC / 100 * exchangeFees
+                            let orderBTC = parseFloat(gainBTC) + parseFloat(quantity) + parseFloat(feesBTC)
+                            let orderPrice = parseFloat(balanceUSDT) / parseFloat(orderBTC)
+                            orderPrice = orderPrice
+                            position = 'USDT'
+                            history = []
+                            grow = []
+                            buyBitcoin(orderBTC, orderPrice)
+                        }
+                    })
+                } else {
+                    details = {
+                        price: sellprice,
+                        time: new Date()
+                    }
+                    position = 'USDT'
+                    history = []
+                    grow = []
+                }
+            } else {
+                //RESETS THE HISTORY IF NOTHING HAPPENED
+                let negative = expected * -1
+                if (history.length > restart || percentage <= negative) {
+                    history = []
+                    grow = []
+                }
             }
         } else {
-            //RESETS THE HISTORY IF NOTHING HAPPENED
-            let negative = expected * -1
-            if (history.length > restart || percentage <= negative) {
-                history = []
-                grow = []
+            log('PRICE USDT NOW IS ' + history[last] + '. ORDER PLACED AT ' + placedOrderPrice)
+            let delta = history[last] - placedOrderPrice
+            var percentage = 100 / history[last] * delta
+            log('PERCENTAGE IS ' + percentage + '%')
+            if (percentage >= gain) {
+                //CANCEL ALL ORDERS
+                log('ACTIVATING STOP LOSS!')
+                clearInterval(timer)
+                fails ++
+                binance.cancelOrders("BTCUSDT", (error, response, symbol) => {
+                    buyMaxBTC()
+                });
             }
         }
-    } else {
-        log('PRICE USDT NOW IS ' + history[last] + '. ORDER PLACED AT ' + placedOrderPrice)
-        let delta = history[last] - placedOrderPrice
-        var percentage = 100 / history[last] * delta
-        log('PERCENTAGE IS ' + percentage + '%')
-        if (percentage >= gain) {
-            //CANCEL ALL ORDERS
-            log('ACTIVATING STOP LOSS!')
-            clearInterval(timer)
-            binance.cancelOrders("BTCUSDT", (error, response, symbol) => {
-                buyMaxBTC()
-            });
-        }
+    }else{
+        log('BOT STALLED, FAILS ARE MAX')
     }
-
 }
 
 function check() {
