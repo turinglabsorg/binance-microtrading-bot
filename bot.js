@@ -159,7 +159,8 @@ async function analyze() {
             let delta = history[last] - placedOrderPrice
             var percentage = 100 / history[last] * delta
             log('PERCENTAGE IS ' + percentage + '%')
-            if (percentage >= gain) {
+            let stop = gain * 2
+            if (percentage >= stop) {
                 //CANCEL ALL ORDERS
                 log('ACTIVATING STOP LOSS!')
                 clearInterval(timer)
