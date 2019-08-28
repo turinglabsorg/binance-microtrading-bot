@@ -59,6 +59,10 @@ app.post('/buy', async (req, res) => {
 
 async function init() {
     let last = await getLastOrder()
+    let bottom = fs.readFileSync('bottom', 'utf8');
+    if(bottom !== '' && bottom !== undefined){
+        history.push(bottom)
+    }
     if (last !== undefined) {
         if (last.side === 'BUY' && parseFloat(last.executedQty) === 0) {
             console.log('ORDER IS PLACED, WAITING FOR FILL')
@@ -107,6 +111,7 @@ async function analyze() {
 
         if (position === 'BTC') {
             if (price < history[0]) {
+                fs.writeFile('bottom', price, (err) => {});
                 history[0] = price
                 grow = []
             }
