@@ -61,7 +61,7 @@ async function init() {
     let last = await getLastOrder()
     let bottom = fs.readFileSync('bottom', 'utf8');
     if(bottom !== '' && bottom !== undefined){
-        history.push(bottom)
+        history.push(parseFloat(bottom))
     }
     if (last !== undefined) {
         if (last.side === 'BUY' && parseFloat(last.executedQty) === 0) {
